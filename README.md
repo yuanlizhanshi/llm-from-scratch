@@ -66,6 +66,23 @@ To demonstrate technical rigor, this project intentionally avoids `torch.nn` hig
 - Container classes: (`Module`, `ModuleList`, `Sequential`) for organizing the model graph.
 - `torch.optim.Optimizer`: Used only as a base class for a ground-up AdamW implementation.
 
+## Lessons Learned
+
+Building a Transformer without the safety nets of `torch.nn` high-level modules revealed several non-obvious engineering challenges:
+
+#### 1. Numerical Stability in Custom Layers
+
+Implementing RMSNorm and Softmax from scratch highlighted the importance of numerical stability. Without `torch.nn.LayerNorm`, the key thing is to ensure that the epsilon placement was precise to avoid division-by-zero or overflow during the reciprocal square root calculation.
+
+#### 2. The Nuance of RoPE (Rotary Positional Embeddings)
+Implementing RoPE required a deep dive into complex number rotations. A more challenging part is to create an auto-expanding cache for the rotation frequencies so the model can handle sequence lengths beyond the initial training window without re-calculating the rotation matrix from scratch every time.
+
+#### 3. Manual Weight Management
+By eschewing `nn.Linear`, I had to manually handle weight initialization (using Xavier/Kaiming initialization principles) and the transpose logic in the forward pass ($y = xW^T + b$). This reinforced my understanding of how PyTorch manages memory and tensor layouts under the hood.
+
+#### 4. Optimizer State Tracking
+Implementing **AdamW** from the base `Optimizer` class was a masterclass in state management. I had to manually track the first and second moments ($m_t$ and $v_t$) for every parameter and ensure the decoupled weight decay was applied correctly ie distinct from the gradient update, to maintain the regularization benefits that standard Adam loses.
+
 ## 🙏 Ackowledgements
 
 - Stanford University CS336: A profound thank you to the course instructors and material for the guidance and motivation required to implement these complex systems from the ground up.
