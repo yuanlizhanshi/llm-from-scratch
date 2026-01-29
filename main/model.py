@@ -301,18 +301,32 @@ def scaled_dot_product_attention(q: torch.Tensor, k: torch.Tensor, v: torch.Tens
     Returns:
      - tensor with shape (..., seq_len_q, d_v)
     """
-    score = (q @ k.transpose(-2, -1)) / math.sqrt(k.size(-1))
+    scores = (q @ k.transpose(-2, -1)) / math.sqrt(k.size(-1))
 
     if mask is not None:
-        score = score.masked_fill(mask == 0, float('-inf'))
+        scores = scores.masked_fill(mask == 0, float('-inf'))
 
-    attention_weights = softmax(score, dim=-1)
+    attn_weights = softmax(scores, dim=-1)
 
-    return attention_weights @ v
+    return attn_weights @ v
+
+def scaled_dot_product_attention_einsum(q, k, v, mask=None):
+    """
+    scaled_dot_product_attention using einsum implementation. 
+    This is not used in the final model, only for reference.
+    """
+    scores = torch.einsum('...nd, ...md -> ...nm', q, k) / math.sqrt(k.size(-1))  # n & m can be in different shape in `Cross-Attention`
+
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, float('-inf'))
+
+    attn_weights = softmax(scores, dim=-1)
+
+    return torch.einsum('...nm, ...mv -> ...nv', attn_weights, v) # Context: (..., n, m) and (..., m, d_v) -> (..., n, d_v)
 
 class CausalSelfAttention(nn.Module):
     """
-    Causal multi-head self-attention.
+    Causal multi-head self-attention. This is not used in the final model, only for reference.
     """
     def __init__(self, d_model: int, n_head: int):
         super().__init__()
