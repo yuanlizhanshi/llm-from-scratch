@@ -1,12 +1,10 @@
 # llm-from-scratch
 
-A high-performance, transformer-based language model implemented entirely from fundamental building blocks. This project focuses on the granular implementation of modern LLM architectures, moving away from high-level abstractions to master the underlying mechanics of large language models.
+A high-performance, transformer-based language model implemented from scratch. This project focuses on the granular implementation of modern LLM architectures, moving away from high-level `PyTorch` abstractions to explicitly demostrate the underlying mechanics of large language models. Also, it is trainable.
 
-## 🚀 Overview
+## Overview
 
-This repository contains a complete implementation of a Transformer-based LLM. The core philosophy of this project is **zero reliance on high-level `torch.nn` layers** (like `nn.Linear`, `nn.LayerNorm`, or `nn.Transformer`). 
-
-Instead, every component is built using `torch.nn.Parameter` and raw tensor operations to ensure a deep understanding of the forward and backward passes.
+This repository contains a complete implementation of a Transformer-based LLM. The core philosophy of this project is **zero reliance on high-level `torch.nn` layers** (like `nn.Linear`, `nn.LayerNorm`, or `nn.Transformer`).
 
 ### Key Technical Features
 
@@ -34,7 +32,8 @@ The model strictly follows the architectural flow illustrated below:
 │   ├── model.py                # Core Transformer component implementations
 │   ├── tokenizer_optimized.py   # Custom BPE/Tokenization
 │   ├── train_model.py          # Training utils and optimizer
-│   └── run_train_model.py      # Entry point for training
+│   ├── run_train_model.py      # Entry point for training
+│   └── play_model.ipynb        # Play with the trained model
 ├── tokenized_data/             # Pre-processed datasets for training
 ├── trained_tokenizer/          # Saved tokenizer states
 ├── img/                        # Architectural diagrams
@@ -71,14 +70,13 @@ To demonstrate technical rigor, this project intentionally avoids `torch.nn` hig
 Building a Transformer without the safety nets of `torch.nn` high-level modules revealed several non-obvious engineering challenges:
 
 #### 1. Numerical Stability in Custom Layers
-
 Implementing RMSNorm and Softmax from scratch highlighted the importance of numerical stability. Without `torch.nn.LayerNorm`, the key thing is to ensure that the epsilon placement was precise to avoid division-by-zero or overflow during the reciprocal square root calculation.
 
 #### 2. The Nuance of RoPE (Rotary Positional Embeddings)
 Implementing RoPE required a deep dive into complex number rotations. A more challenging part is to create an auto-expanding cache for the rotation frequencies so the model can handle sequence lengths beyond the initial training window without re-calculating the rotation matrix from scratch every time.
 
 #### 3. Manual Weight Management
-By eschewing `nn.Linear`, I had to manually handle weight initialization (using Xavier/Kaiming initialization principles) and the transpose logic in the forward pass ($y = xW^T + b$). This reinforced my understanding of how PyTorch manages memory and tensor layouts under the hood.
+In `nn.Linear`, the actually multiply in the forward pass is $y = xW^\top$ rather than $y = Wx$ because the row-major memory ordering in PyTorch. This reinforced my understanding of how PyTorch manages memory and tensor layouts under the hood.
 
 #### 4. Optimizer State Tracking
 Implementing **AdamW** from the base `Optimizer` class was a masterclass in state management. I had to manually track the first and second moments ($m_t$ and $v_t$) for every parameter and ensure the decoupled weight decay was applied correctly ie distinct from the gradient update, to maintain the regularization benefits that standard Adam loses.
