@@ -1,15 +1,18 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Run this script in the project root directory to start training the language model. 
 
 # the data must be tokenized first - otherwise run the tokenization script first.
 # For training and implementing the tokenizer, please refer to https://github.com/Siyuan-Harry/bpe-optimized-from-scratch
-TRAIN_DATA="tokenized_data/your_train_data.bin" 
-VAL_DATA="tokenized_data/your_val_data.bin" 
+TRAIN_DATA="tokenized_data/train.bin" 
+VAL_DATA="tokenized_data/val.bin" 
 
 # path to your tokenizer vocab & merges file
-VOCAB="trained_tokenizer/vocab_of_your_tokenizer.json" 
-MERGES="trained_tokenizer/merges_of_your_tokenizer.json" 
+# these defaults are set to the prepared TinyStories tokenizer artifacts
+VOCAB="trained_tokenizer/vocab.json" 
+MERGES="trained_tokenizer/merges.json" 
 
 # make one output directory for every run to record any outputs & logs
 OUT_ROOT="train_logs"
@@ -17,7 +20,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 OUT_DIR="$OUT_ROOT/run_$TIMESTAMP"
 LOG_FILE="$OUT_DIR/train.log"
 
-mkdir -p $OUT_DIR
+mkdir -p "$OUT_DIR"
 
 echo "====================================================="
 echo "Work Dir: $(pwd)"
@@ -26,7 +29,7 @@ echo "Log File: $LOG_FILE"
 echo "====================================================="
 
 # nohup makes the process run in the background even after logging out
-nohup python -u run_train_model.py \
+nohup python -u main/run_train_model.py \
     --train_data $TRAIN_DATA \
     --val_data $VAL_DATA \
     --tokenizer_vocab $VOCAB \

@@ -25,6 +25,8 @@ from train_model import (
 from model import Transformer as Model
 from model import softmax
 
+tokenizer = None
+
 device = "cpu"
 if torch.cuda.is_available():
     device = "cuda"

@@ -15,3 +15,8 @@ env/
 # IDE
 .vscode/
 .idea/
+
+# Training artifacts / local data
+train_logs/
+tokenized_data/*.bin
+*.pt
